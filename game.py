@@ -1,5 +1,6 @@
-import pygame
 import math
+
+import pygame
 
 width = 800
 height = 600
@@ -16,27 +17,39 @@ def rotate_point(point, off, angle):
 
 
 class Events:
-    def __init__(self):
-        self.up = self.left = self.right = False
+    up = left = right = False
 
-    def update(self):
+    @staticmethod
+    def update():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game.run = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    self.up = True
+                    Events.up = True
                 elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    self.left = True
+                    Events.left = True
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    self.right = True
+                    Events.right = True
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
-                    self.up = False
+                    Events.up = False
                 elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                    self.left = False
+                    Events.left = False
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                    self.right = False
+                    Events.right = False
+
+
+# class Effects:
+#     @staticmethod
+#     def blur(surf, factor):
+#         arr = pygame.surfarray.pixels3d(surf)
+#         soften = arr
+#         soften[1:, :] += arr[:-1, :] * factor
+#         soften[:-1, :] += arr[1:, :] * factor
+#         soften[:, 1:] += arr[:, :-1] * factor
+#         soften[:, :-1] += arr[:, 1:] * factor
+#         pygame.surfarray.blit_array(surf, arr)
 
 
 class Ship:
@@ -45,7 +58,7 @@ class Ship:
 
     def __init__(self, pos):
         self.pos = pos
-        self.angle = math.pi/2
+        self.angle = -math.pi/2
         self.speed = [0.0, 0.0]
         self.ang_speed = self.for_speed = 0
 
@@ -94,25 +107,22 @@ class Game:
 
         self.run = True
         self.clock = pygame.time.Clock()
-        self.events = Events()
 
         pygame.display.init()
-        pygame.display.set_mode([width, height])
+        self.surf = pygame.display.set_mode([width, height])
         pygame.display.set_caption("Asteroids")
         pygame.display.set_icon(pygame.image.load('img/icon.png'))
-
-        self.surf = pygame.display.get_surface()
 
         self.ship = Ship([400, 300])
 
     def update(self):
-        self.events.update()
+        Events.update()
 
-        if self.events.up:
+        if Events.up:
             self.ship.for_speed = 2.5
-        if self.events.left:
+        if Events.left:
             self.ship.ang_speed = -0.025
-        elif self.events.right:
+        elif Events.right:
             self.ship.ang_speed = 0.025
 
         self.ship.update()
