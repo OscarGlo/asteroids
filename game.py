@@ -7,14 +7,22 @@ width = 800
 height = 600
 
 
-def rotate_point(point, off, angle):
+def rotate_point(origin, off, angle):
     s = math.sin(angle)
     c = math.cos(angle)
 
-    x = off[0] * c - off[1] * s + point[0]
-    y = off[0] * s + off[1] * c + point[1]
+    x = off[0] * c - off[1] * s + origin[0]
+    y = off[0] * s + off[1] * c + origin[1]
 
     return [x, y]
+
+
+def rotate_points(origin, points, angle):
+    tmpPoints = []
+    for i in range(len(points)):
+        tmpPoints.append(rotate_point(origin, points[i], angle))
+
+    return tmpPoints
 
 
 class Events:
@@ -60,14 +68,14 @@ class CyclePos:
 
     def cycle(self):
         if self.pos[0] >= width + self.offsetX:
-            self.pos[0] -= width + self.offsetX
+            self.pos[0] -= width + self.offsetX*2
         elif self.pos[0] <= -self.offsetX:
-            self.pos[0] += width + self.offsetX
+            self.pos[0] += width + self.offsetX*2
 
         if self.pos[1] >= height + self.offsetY:
-            self.pos[1] -= height + self.offsetY
+            self.pos[1] -= height + self.offsetY*2
         elif self.pos[1] <= -self.offsetY:
-            self.pos[1] += height + self.offsetY
+            self.pos[1] += height + self.offsetY*2
 
 
 class Particle(CyclePos):
@@ -140,17 +148,49 @@ class AsteroidAverage(CyclePos):
 
     def __init__(self):
 
+        self.points = [
+            [-45, -52],
+            [-31, -47],
+            [43, -61],
+            [42, -29],
+            [19, -13],
+            [42, -29],
+            [43, -61],
+            [64, -40],
+            [58, -22],
+            [62, 15],
+            [41, 7],
+            [48, 0],
+            [41, 7],
+            [68, 30],
+            [17, 68],
+            [-13, 60],
+            [-22, 45],
+            [-13, 60],
+            [-22, 73],
+            [-51, 75],
+            [-73, 28],
+            [-60, -26],
+            [-31, -11],
+            [-24, 11],
+            [-31, -11],
+            [-50, -22]
+        ]
+
         if random.random() > 0.5:
             self.pos = [random.random() * width, -100]
         else:
             self.pos = [-100, random.random() * height]
 
-        super().__init__(self.pos, 200, 200)
+        super().__init__(self.pos, 100, 100)
 
         self.angle = math.pi * random.random()
+        self.rotatedPoints = rotate_points(self.pos, self.points, self.angle)
         tmpRandom = (random.random()-0.5)
-        self.speed = [(tmpRandom)*2, (1-tmpRandom)*2]
-        self.ang_speed = random.random()*0.05
+        print(tmpRandom)
+        self.speed = [(tmpRandom)*2, (tmpRandom)*2]
+        print(self.speed)
+        self.ang_speed = random.random()*0.03
 
     def update(self):
 
@@ -158,18 +198,14 @@ class AsteroidAverage(CyclePos):
         self.pos[1] += self.speed[1]
 
         self.angle += self.ang_speed
+        self.rotatedPoints = rotate_points(self.pos, self.points, self.angle)
         self.cycle()
 
     def draw(self, surf):
-        self.draw_one(surf, (self.pos[0], self.pos[1]))
+        pygame.draw.lines(surf, Ship.color, True, self.rotatedPoints, 2)
 
-    def draw_one(self, surf, pos):
-        pygame.draw.lines(surf, Ship.color, True, [
-            rotate_point(pos, [15, 0], self.angle),
-            rotate_point(pos, [-15, -15], self.angle),
-            rotate_point(pos, [-10, 0], self.angle),
-            rotate_point(pos, [-15, 15], self.angle)
-        ], 2)
+    #def draw_one(self, surf, pos):
+    #   pygame.draw.lines(surf, Ship.color, True, self.rotatedPoints, 2)
 
 
 class Ship(CyclePos):
@@ -183,6 +219,15 @@ class Ship(CyclePos):
         self.speed = [0.0, 0.0]
         self.ang_speed = self.for_speed = 0
 
+        self.points = [
+            [15, 0],
+            [-15, -15],
+            [-10, 0],
+            [-15, 15]
+        ]
+
+        self.rotatedPoints = rotate_points([0, 0], self.points, self.angle)
+
         self.particles = ParticleGen(rotate_point(self.pos, [-10, 0], self.angle),
                                      self.angle + math.pi, math.pi / 2, 5, 2, 60)
 
@@ -194,6 +239,8 @@ class Ship(CyclePos):
         self.pos[1] += self.speed[1]
 
         self.angle += self.ang_speed
+
+        self.rotatedPoints = rotate_points(self.pos, self.points, self.angle)
 
         self.particles.pos = rotate_point(self.pos, [-10, 0], self.angle)
         self.particles.direction = self.angle + math.pi
@@ -207,11 +254,12 @@ class Ship(CyclePos):
 
     def draw_one(self, surf, pos):
         pygame.draw.lines(surf, Ship.color, True, [
-            rotate_point(pos, [15, 0], self.angle),
-            rotate_point(pos, [-15, -15], self.angle),
-            rotate_point(pos, [-10, 0], self.angle),
-            rotate_point(pos, [-15, 15], self.angle)
+            rotate_point(pos, self.points[0], self.angle),
+            rotate_point(pos, self.points[1], self.angle),
+            rotate_point(pos, self.points[2], self.angle),
+            rotate_point(pos, self.points[3], self.angle)
         ], 2)
+        pygame.draw.lines(surf, Ship.color, True, self.rotatedPoints, 2)
 
     def draw(self, surf):
         for i in (-1, 0, 1):
