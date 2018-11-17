@@ -53,24 +53,26 @@ class Events:
 #         pygame.surfarray.blit_array(surf, arr)
 
 class CyclePos:
-    def __init__(self, pos):
+    def __init__(self, pos, offsetX, offsetY):
         self.pos = pos
+        self.offsetX = offsetX
+        self.offsetY = offsetY
 
     def cycle(self):
-        if self.pos[0] >= width:
-            self.pos[0] -= width
-        elif self.pos[0] <= 0:
-            self.pos[0] += width
+        if self.pos[0] >= width + self.offsetX:
+            self.pos[0] -= width + self.offsetX
+        elif self.pos[0] <= -self.offsetX:
+            self.pos[0] += width + self.offsetX
 
-        if self.pos[1] >= height:
-            self.pos[1] -= height
-        elif self.pos[1] <= 0:
-            self.pos[1] += height
+        if self.pos[1] >= height + self.offsetY:
+            self.pos[1] -= height + self.offsetY
+        elif self.pos[1] <= -self.offsetY:
+            self.pos[1] += height + self.offsetY
 
 
 class Particle(CyclePos):
     def __init__(self, pos, angle, speed, time, fade=True):
-        super().__init__(pos)
+        super().__init__(pos, 0, 0)
         self.angle = angle
         self.speed = speed
         self.time = self.startTime = time
@@ -100,7 +102,7 @@ class Particle(CyclePos):
 
 class ParticleGen(CyclePos):
     def __init__(self, pos, direction, angle, delay, speed, time):
-        super().__init__(pos)
+        super().__init__(pos, 0, 0)
         self.direction = direction
         self.angle = angle
         self.delay = delay
@@ -133,11 +135,49 @@ class ParticleGen(CyclePos):
             particle.draw(surf)
 
 
-class Ship:
+class AsteroidAverage(CyclePos):
+    color = (255, 255, 255)
+
+    def __init__(self):
+
+        if random.random() > 0.5:
+            self.pos = [random.random() * width, -100]
+        else:
+            self.pos = [-100, random.random() * height]
+
+        super().__init__(self.pos, 200, 200)
+
+        self.angle = math.pi * random.random()
+        tmpRandom = (random.random()-0.5)
+        self.speed = [(tmpRandom)*2, (1-tmpRandom)*2]
+        self.ang_speed = random.random()*0.05
+
+    def update(self):
+
+        self.pos[0] += self.speed[0]
+        self.pos[1] += self.speed[1]
+
+        self.angle += self.ang_speed
+        self.cycle()
+
+    def draw(self, surf):
+        self.draw_one(surf, (self.pos[0], self.pos[1]))
+
+    def draw_one(self, surf, pos):
+        pygame.draw.lines(surf, Ship.color, True, [
+            rotate_point(pos, [15, 0], self.angle),
+            rotate_point(pos, [-15, -15], self.angle),
+            rotate_point(pos, [-10, 0], self.angle),
+            rotate_point(pos, [-15, 15], self.angle)
+        ], 2)
+
+
+class Ship(CyclePos):
     color = (255, 255, 255)
     rate = 0.0175
 
     def __init__(self, pos):
+        super().__init__(pos, 0, 0)
         self.pos = pos
         self.angle = -math.pi / 2
         self.speed = [0.0, 0.0]
@@ -163,6 +203,7 @@ class Ship:
 
         self.for_speed = 0
         self.ang_speed = 0
+        self.cycle()
 
     def draw_one(self, surf, pos):
         pygame.draw.lines(surf, Ship.color, True, [
@@ -194,6 +235,7 @@ class Game:
         pygame.display.set_icon(pygame.image.load('img/icon.png'))
 
         self.ship = Ship([400, 300])
+        self.asteroids = AsteroidAverage()
 
     def update(self):
         Events.update()
@@ -206,10 +248,12 @@ class Game:
             self.ship.ang_speed = 0.025
 
         self.ship.update()
+        self.asteroids.update()
 
     def draw(self):
         self.surf.fill(Game.background)
         self.ship.draw(self.surf)
+        self.asteroids.draw(self.surf)
         pygame.display.update()
 
 
