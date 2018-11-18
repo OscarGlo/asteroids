@@ -25,6 +25,35 @@ def rotate_points(origin, points, angle):
     return tmp_points
 
 
+def sign(point1, point2, point3):
+    return (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
+
+
+def pointInTriangle(pointT, pointV1, pointV2, pointV3):
+
+    d1 = sign(pointT, pointV1, pointV2)
+    d2 = sign(pointT, pointV2, pointV3)
+    d3 = sign(pointT, pointV3, pointV1)
+
+    has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0)
+    has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
+
+    return not(has_neg and has_pos)
+
+
+def pointInPolygon(pointToTest, center, pointsOfPolygon):
+    i = 0
+
+    while i < len(pointsOfPolygon)-1:
+        if pointInTriangle(pointToTest, center, pointsOfPolygon[i], pointsOfPolygon[i + 1]):
+            return [True, i, i + 1]
+        i += 1
+    if pointInTriangle(pointToTest, center, pointsOfPolygon[i], pointsOfPolygon[0]):
+        return [True, i, 0]
+
+    return [False, [0, 0], [0, 0]]
+
+
 class Events:
     up = left = right = action = False
 
@@ -204,7 +233,19 @@ class Asteroid(PointsObject, CyclePos):
 
     def update(self):
         super().update()
+        self.collisionLaser()
         self.cycle()
+
+    def collisionLaser(self):
+        global game
+        for laser in game.ship.lasers:
+            tmpResult = pointInPolygon(laser.pos, self.pos, rotate_points((self.pos[0], self.pos[1]), self.points,
+                                                                       self.angle))
+
+            if tmpResult[0]:
+                laser.dead = True
+                self.points[tmpResult[1]] = [self.points[tmpResult[1]][0]*0.8, self.points[tmpResult[1]][1]*0.8]
+                self.points[tmpResult[2]] = [self.points[tmpResult[2]][0] * 0.8, self.points[tmpResult[2]][1] * 0.8]
 
 
 class Laser(PointsObject):
@@ -268,7 +309,7 @@ class Ship(PointsObject, CyclePos):
         self.particles.direction = self.angle + math.pi
         self.particles.update()
         if self.for_speed != 0:
-            self.particles.generate(fade=False)
+            self.particles.generate(fade=True)
 
         self.for_speed = 0
         self.ang_speed = 0
@@ -281,8 +322,6 @@ class Ship(PointsObject, CyclePos):
             l.update()
             if l.dead:
                 self.lasers.remove(l)
-
-        print(len(self.lasers))
 
     def shoot(self):
         if self.laser_timer == 0:
@@ -302,6 +341,13 @@ class Ship(PointsObject, CyclePos):
 
 class Game:
     background = (0, 0, 1)
+
+    print(pointInTriangle([1, 1], [0, 0], [1, 0], [0, 1]))
+    print(pointInTriangle([0.5, 0.5], [0, 0], [1, 0], [0, 1]))
+
+    print(pointInPolygon([-1, -1], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
+    print(pointInPolygon([1, 0.5], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
+    print(pointInPolygon([1, 0.5], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
 
     def __init__(self):
         global width, height
