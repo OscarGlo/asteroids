@@ -26,7 +26,7 @@ def rotate_points(origin, points, angle):
 
 
 class Events:
-    up = left = right = False
+    up = left = right = action = False
 
     @staticmethod
     def update():
@@ -40,6 +40,8 @@ class Events:
                     Events.left = True
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     Events.right = True
+                elif event.key == pygame.K_SPACE:
+                    Events.action = True
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
                     Events.up = False
@@ -47,6 +49,8 @@ class Events:
                     Events.left = False
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     Events.right = False
+                elif event.key == pygame.K_SPACE:
+                    Events.action = False
 
 
 class CyclePos:
@@ -86,12 +90,13 @@ class PointsObject:
 
 
 class Particle(CyclePos):
-    def __init__(self, pos, angle, speed, time, fade=True):
+    def __init__(self, pos, angle, speed, time, fade=True, size=2):
         super().__init__(pos)
         self.angle = angle
         self.speed = speed
         self.time = self.startTime = time
         self.fade = fade
+        self.size = size
 
         self.dead = False
 
@@ -114,7 +119,7 @@ class Particle(CyclePos):
             c = 255
         if c < 0:
             c = 0
-        pygame.draw.rect(surf, (c, c, c), pygame.rect.Rect(self.pos, (2, 2)))
+        pygame.draw.rect(surf, (c, c, c), pygame.rect.Rect(self.pos, (self.size, self.size)))
 
 
 class ParticleGen(CyclePos):
@@ -129,19 +134,20 @@ class ParticleGen(CyclePos):
 
         self.particles = []
 
-    def generate(self, speed_var=0.2, time_var=0.1, fade=True):
+    def generate(self, speed_var=0.2, time_var=0.1, fade=True, size=2):
         if self.counter == self.delay:
             self.counter = 0
             angle = self.direction + (random.random() * self.angle - self.angle / 2)
             speed = self.speed + (self.speed * random.random() - self.speed / 2) * speed_var
             time = self.time + (self.time * random.random() - self.time / 2) * time_var
-            self.particles.append(Particle(self.pos, angle, speed, time, fade))
-        else:
-            self.counter += 1
+            self.particles.append(Particle(self.pos, angle, speed, time, fade, size))
 
         self.cycle()
 
     def update(self):
+        if self.counter < self.delay:
+            self.counter += 1
+
         for p in self.particles:
             p.update()
             if p.dead:
@@ -149,7 +155,7 @@ class ParticleGen(CyclePos):
 
     def draw(self, surf):
         for particle in self.particles:
-            particle.draw(surf, )
+            particle.draw(surf)
 
 
 class Asteroid(PointsObject, CyclePos):
@@ -201,6 +207,36 @@ class Asteroid(PointsObject, CyclePos):
         self.cycle()
 
 
+class Laser(PointsObject):
+    def __init__(self, pos, angle):
+        super().__init__([
+            [0, 0],
+            [10, 0]
+        ], pos, angle)
+        self.speed = [5 * math.cos(self.angle), 5 * math.sin(self.angle)]
+
+        # self.particles = ParticleGen(pos, angle + math.pi, math.pi, 2, 0.5, 5)
+
+        self.dead = False
+
+    def update(self):
+        if not self.dead:
+            super().update()
+
+            # self.particles.pos = [self.pos[0], self.pos[1]]
+            #
+            # self.particles.generate(fade=False)
+            # self.particles.update()
+
+            if not 0 <= self.pos[0] <= width or not 0 <= self.pos[1] <= height:
+                self.dead = True
+
+    def draw(self, surf, **kwargs):
+        super().draw(surf)
+
+        # self.particles.draw(surf)
+
+
 class Ship(PointsObject, CyclePos):
     color = (255, 255, 255)
     rate = 0.0175
@@ -219,6 +255,8 @@ class Ship(PointsObject, CyclePos):
 
         self.particles = ParticleGen(rotate_point(self.pos, [-10, 0], self.angle),
                                      self.angle + math.pi, math.pi / 2, 5, 2, 60)
+        self.lasers = []
+        self.laser_timer = 0
 
     def update(self):
         self.speed[0] = self.speed[0] * (1 - Ship.rate) + self.for_speed * math.cos(self.angle) * Ship.rate
@@ -236,11 +274,30 @@ class Ship(PointsObject, CyclePos):
         self.ang_speed = 0
         self.cycle()
 
+        if self.laser_timer > 0:
+            self.laser_timer -= 1
+
+        for l in self.lasers:
+            l.update()
+            if l.dead:
+                self.lasers.remove(l)
+
+        print(len(self.lasers))
+
+    def shoot(self):
+        if self.laser_timer == 0:
+            self.lasers.append(Laser(rotate_point(self.pos, [15, 0], self.angle), self.angle))
+            self.laser_timer = 50
+
     def draw(self, surf, **kwargs):
         for i in (-1, 0, 1):
             for j in (-1, 0, 1):
                 super().draw(surf, (width * i, height * j))
+
         self.particles.draw(surf)
+
+        for l in self.lasers:
+            l.draw(surf)
 
 
 class Game:
@@ -265,10 +322,14 @@ class Game:
 
         if Events.up:
             self.ship.for_speed = 2.5
+
         if Events.left:
             self.ship.ang_speed = -0.025
         elif Events.right:
             self.ship.ang_speed = 0.025
+
+        if Events.action:
+            self.ship.shoot()
 
         self.ship.update()
         self.asteroids.update()
