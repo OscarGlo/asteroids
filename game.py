@@ -29,26 +29,25 @@ def sign(point1, point2, point3):
     return (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
 
 
-def pointInTriangle(pointT, pointV1, pointV2, pointV3):
-
-    d1 = sign(pointT, pointV1, pointV2)
-    d2 = sign(pointT, pointV2, pointV3)
-    d3 = sign(pointT, pointV3, pointV1)
+def point_in_triangle(point, tri):
+    d1 = sign(point, tri[0], tri[1])
+    d2 = sign(point, tri[1], tri[2])
+    d3 = sign(point, tri[2], tri[0])
 
     has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0)
     has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
 
-    return not(has_neg and has_pos)
+    return not (has_neg and has_pos)
 
 
-def pointInPolygon(pointToTest, center, pointsOfPolygon):
+def point_in_polygon(point, center, polygon):
     i = 0
 
-    while i < len(pointsOfPolygon)-1:
-        if pointInTriangle(pointToTest, center, pointsOfPolygon[i], pointsOfPolygon[i + 1]):
+    while i < len(polygon) - 1:
+        if point_in_triangle(point, (center, polygon[i], polygon[i + 1])):
             return [True, i, i + 1]
         i += 1
-    if pointInTriangle(pointToTest, center, pointsOfPolygon[i], pointsOfPolygon[0]):
+    if point_in_triangle(point, (center, polygon[i], polygon[0])):
         return [True, i, 0]
 
     return [False, [0, 0], [0, 0]]
@@ -233,19 +232,19 @@ class Asteroid(PointsObject, CyclePos):
 
     def update(self):
         super().update()
-        self.collisionLaser()
+        self.collision_laser()
         self.cycle()
 
-    def collisionLaser(self):
+    def collision_laser(self):
         global game
         for laser in game.ship.lasers:
-            tmpResult = pointInPolygon(laser.pos, self.pos, rotate_points((self.pos[0], self.pos[1]), self.points,
-                                                                       self.angle))
+            tmp_result = point_in_polygon(laser.pos, self.pos, rotate_points((self.pos[0], self.pos[1]), self.points,
+                                                                             self.angle))
 
-            if tmpResult[0]:
+            if tmp_result[0]:
                 laser.dead = True
-                self.points[tmpResult[1]] = [self.points[tmpResult[1]][0]*0.8, self.points[tmpResult[1]][1]*0.8]
-                self.points[tmpResult[2]] = [self.points[tmpResult[2]][0] * 0.8, self.points[tmpResult[2]][1] * 0.8]
+                self.points[tmp_result[1]] = [self.points[tmp_result[1]][0] * 0.8, self.points[tmp_result[1]][1] * 0.8]
+                self.points[tmp_result[2]] = [self.points[tmp_result[2]][0] * 0.8, self.points[tmp_result[2]][1] * 0.8]
 
 
 class Laser(PointsObject):
@@ -342,16 +341,14 @@ class Ship(PointsObject, CyclePos):
 class Game:
     background = (0, 0, 1)
 
-    print(pointInTriangle([1, 1], [0, 0], [1, 0], [0, 1]))
-    print(pointInTriangle([0.5, 0.5], [0, 0], [1, 0], [0, 1]))
-
-    print(pointInPolygon([-1, -1], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
-    print(pointInPolygon([1, 0.5], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
-    print(pointInPolygon([1, 0.5], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
+    # print(point_in_triangle([1, 1], ([0, 0], [1, 0], [0, 1])))
+    # print(point_in_triangle([0.5, 0.5], ([0, 0], [1, 0], [0, 1])))
+    #
+    # print(point_in_polygon([-1, -1], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
+    # print(point_in_polygon([1, 0.5], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
+    # print(point_in_polygon([1, 0.5], [1, 1], [[0, 0], [2, 0], [2, 2], [0, 2]]))
 
     def __init__(self):
-        global width, height
-
         self.run = True
         self.clock = pygame.time.Clock()
 
