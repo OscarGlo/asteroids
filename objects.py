@@ -1,4 +1,4 @@
-import random
+import random, pygame
 from util import *
 
 
@@ -74,7 +74,7 @@ class ParticleGen(CyclePos):
 class Asteroid(PointsObject, CyclePos):
     color = (255, 255, 255)
 
-    def __init__(self, game):
+    def __init__(self, game, size):
         if random.random() > 0.5:
             self.pos = [random.random() * width, -100]
         else:
@@ -82,55 +82,78 @@ class Asteroid(PointsObject, CyclePos):
 
         CyclePos.__init__(self, self.pos, (100, 100))
 
-        PointsObject.__init__(self, [
-            [-45, -52],
-            [-31, -47],
-            [43, -61],
-            [42, -29],
-            [19, -13],
-            [42, -29],
-            [43, -61],
-            [64, -40],
-            [58, -22],
-            [62, 15],
-            [41, 7],
-            [48, 0],
-            [41, 7],
-            [68, 30],
-            [17, 68],
-            [-13, 60],
-            [-22, 45],
-            [-13, 60],
-            [-22, 73],
-            [-51, 75],
-            [-73, 28],
-            [-60, -26],
-            [-31, -11],
-            [-24, 11],
-            [-31, -11],
-            [-50, -22]
-        ], self.pos, math.pi * random.random())
+        # PointsObject.__init__(self, [
+        #     [-45, -52],
+        #     [-31, -47],
+        #     [43, -61],
+        #     [42, -29],
+        #     [19, -13],
+        #     [42, -29],
+        #     [43, -61],
+        #     [64, -40],
+        #     [58, -22],
+        #     [62, 15],
+        #     [41, 7],
+        #     [48, 0],
+        #     [41, 7],
+        #     [68, 30],
+        #     [17, 68],
+        #     [-13, 60],
+        #     [-22, 45],
+        #     [-13, 60],
+        #     [-22, 73],
+        #     [-51, 75],
+        #     [-73, 28],
+        #     [-60, -26],
+        #     [-31, -11],
+        #     [-24, 11],
+        #     [-31, -11],
+        #     [-50, -22]
+        # ], self.pos, math.pi * random.random())
+        PointsObject.__init__(self, self.gen(size*10*size), self.pos, math.pi * random.random())
 
         angle = random.random() * math.pi * 2
         self.speed = [0.5 * math.sin(angle), 0.5 * math.cos(angle)]
         self.ang_speed = random.random() * 0.015
 
+        self.health = size*size
+        self.split = size
+
         self.game = game
 
     def update(self):
-        super().update()
-        self.collision_laser()
-        self.cycle()
+        if self.health <= 0:
+            self.dead = True
+
+        if not self.dead:
+            super().update()
+            self.collision_laser()
+            self.cycle()
+
+    @staticmethod
+    def gen(size):
+
+        tmp = []
+        nb_points = math.floor(size/5)+5
+        for i in range(0, nb_points):
+            dist = (random.random()-0.5)*0.4*(size+5) + size
+            tmp.append(rotate_point([0, 0], [dist, 0], (2*math.pi/nb_points)*i))
+        return tmp
 
     def collision_laser(self):
         for laser in self.game.ship.lasers:
-            tmp_result = point_in_polygon(laser.pos, self.pos, rotate_points((self.pos[0], self.pos[1]), self.points,
-                                                                             self.angle))
+            tmp_result = self.is_in(laser)
 
             if tmp_result[0]:
                 laser.dead = True
-                self.points[tmp_result[1]] = [self.points[tmp_result[1]][0] * 0.9, self.points[tmp_result[1]][1] * 0.9]
-                self.points[tmp_result[2]] = [self.points[tmp_result[2]][0] * 0.9, self.points[tmp_result[2]][1] * 0.9]
+                self.hit(tmp_result[1], tmp_result[2])
+
+    def hit(self, point1, point2):
+        self.points[point1] = [self.points[point1][0] * 0.9, self.points[point1][1] * 0.9]
+        self.points[point2] = [self.points[point2][0] * 0.9, self.points[point2][1] * 0.9]
+        self.health = self.health -1
+
+
 
 
 class Laser(PointsObject):
@@ -143,9 +166,8 @@ class Laser(PointsObject):
 
         # self.particles = ParticleGen(pos, angle + math.pi, math.pi, 2, 0.5, 5)
 
-        self.dead = False
-
     def update(self):
+
         if not self.dead:
             super().update()
 
@@ -161,6 +183,26 @@ class Laser(PointsObject):
         super().draw(surf)
 
         # self.particles.draw(surf)
+
+
+class Wave:
+
+    def __init__(self, game, text, asteroids):
+        self.text = text
+        self.tab = []
+
+        for caracteristic in asteroids:
+            for i in range(caracteristic[0]):
+                self.tab.append(Asteroid(game, caracteristic[1]))
+
+    def update(self):
+        for asteroid in self.tab:
+            asteroid.update()
+
+    def draw(self, surf):
+        for asteroid in self.tab:
+            asteroid.draw(surf)
+
 
 
 class Ship(PointsObject, CyclePos):

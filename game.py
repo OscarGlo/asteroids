@@ -50,7 +50,8 @@ class Game:
         pygame.display.set_icon(pygame.image.load('img/icon.png'))
 
         self.ship = Ship([400, 300])
-        self.asteroids = Asteroid()
+        self.asteroids = Asteroid(self, 3)
+        self.wave = Wave(self, "wave test", [[2, 2]])
 
     def update(self):
         Events.update()
@@ -68,11 +69,13 @@ class Game:
 
         self.ship.update()
         self.asteroids.update()
+        self.wave.update()
 
     def draw(self):
         self.surf.fill(Game.background)
         self.ship.draw(self.surf)
         self.asteroids.draw(self.surf, thick=3)
+        self.wave.draw(self.surf)
         pygame.display.update()
 
 

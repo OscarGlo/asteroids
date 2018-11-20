@@ -1,4 +1,6 @@
 import math
+import pygame
+
 from config import width, height
 
 
@@ -72,13 +74,25 @@ class PointsObject:
         self.angle = angle
         self.speed = [0.0, 0.0]
         self.ang_speed = 0
+        self.dead = False
 
     def update(self):
-        self.pos[0] += self.speed[0]
-        self.pos[1] += self.speed[1]
+        if not self.dead:
+            self.pos[0] += self.speed[0]
+            self.pos[1] += self.speed[1]
 
-        self.angle += self.ang_speed
+            self.angle += self.ang_speed
 
     def draw(self, surf, off=(0, 0), thick=2, color=(255, 255, 255)):
         pygame.draw.lines(surf, color, True, rotate_points((self.pos[0] + off[0], self.pos[1] + off[1]),
                                                            self.points, self.angle), thick)
+
+    def is_in(self, point_obj):
+        rot_point = rotate_points(self.pos, self.points, self.angle)
+
+        for point in rotate_points(point_obj.pos, point_obj.points, point_obj.angle):
+            tmp_result = point_in_polygon(point, self.pos, rot_point)
+            if tmp_result[0]:
+                return tmp_result
+
+        return [False, 0, 0]
