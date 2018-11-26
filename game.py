@@ -19,6 +19,8 @@ class Events:
                     Events.right = True
                 elif event.key == pygame.K_SPACE:
                     Events.action = True
+                elif event.key == pygame.K_ESCAPE:
+                    game.run = False
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_UP or event.key == pygame.K_w:
                     Events.up = False
@@ -28,25 +30,6 @@ class Events:
                     Events.right = False
                 elif event.key == pygame.K_SPACE:
                     Events.action = False
-
-
-class Stars:
-    def __init__(self, pos):
-        self.pos = pos
-        self.stars = []
-        off = 50
-        rand = 40
-        for i in range(math.floor(width/off)):
-            for j in range(math.floor(height/off)):
-                self.stars.append([i * off + math.floor(random.random() * rand),
-                                   j * off + math.floor(random.random() * rand)])
-
-    def draw(self, surf):
-        for star in self.stars:
-            c = 100
-            pygame.draw.rect(surf, (c, c, c),
-                             pygame.rect.Rect(((self.pos[0] + star[0]) % width, (self.pos[1] + star[1]) % height),
-                                              (2, 2)))
 
 
 class Game:
@@ -63,10 +46,10 @@ class Game:
         pygame.display.set_caption("Asteroids")
         pygame.display.set_icon(pygame.image.load('img/icon.png'))
 
-        self.stars = Stars([0, 0])
-
         self.ship = Ship([400, 300])
-        self.asteroids = []
+        self.wave = Wave(self, [[3, 1], [1, 2]])
+
+        self.stars = Stars(self, [0, 0])
 
         self.last_text = [None, None]
 
@@ -87,14 +70,11 @@ class Game:
         if Events.action:
             self.ship.shoot()
 
-        pos1 = [self.ship.pos[0], self.ship.pos[1]]
-
         self.ship.update()
-        for asteroid in self.asteroids:
-            asteroid.update()
 
-        self.stars.pos[0] += (self.ship.pos[0] - pos1[0]) % width / 5
-        self.stars.pos[1] += (self.ship.pos[1] - pos1[1]) % height / 5
+        self.stars.update()
+
+        self.wave.update()
 
         self.timer += 1
 
@@ -113,8 +93,8 @@ class Game:
         self.stars.draw(self.surf)
         
         self.ship.draw(self.surf)
-        for asteroid in self.asteroids:
-            asteroid.draw(self.surf, thick=3)
+
+        self.wave.draw(self.surf)
 
         self.draw_ui()
         pygame.display.update()
