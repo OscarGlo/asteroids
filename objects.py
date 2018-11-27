@@ -1,6 +1,5 @@
 import random
 import pygame
-import numpy
 from util import *
 
 
@@ -143,7 +142,7 @@ class Asteroid(PointsObject, CyclePos):
 
             if self.size > 1:
                 for i in range(self.size):
-                    angle = laser.angle + numpy.random.normal(0,1,size=None)/4
+                    angle = laser.angle + (random.random()-0.5)*2
                     self.wave.tab.append(Asteroid(self.game, self.wave, self.size - 1, [self.pos[0], self.pos[1]], angle))
 
 
