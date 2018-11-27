@@ -1,4 +1,6 @@
-import random, pygame
+import random
+import pygame
+import numpy
 from util import *
 
 
@@ -74,7 +76,7 @@ class ParticleGen(CyclePos):
 class Asteroid(PointsObject, CyclePos):
     color = (255, 255, 255)
 
-    def __init__(self, game, wave, size, pos=None):
+    def __init__(self, game, wave, size, pos=None, angle=None):
         if pos is None:
             if random.random() > 0.5:
                 self.pos = [random.random() * width, -100]
@@ -83,12 +85,17 @@ class Asteroid(PointsObject, CyclePos):
         else:
             self.pos = pos
 
+        if angle is None:
+            self.angle = random.random() * math.pi * 2
+        else:
+            self.angle = angle
+
         CyclePos.__init__(self, self.pos, (100, 100))
 
-        PointsObject.__init__(self, self.gen(size * 10 * size), self.pos, math.pi * random.random())
+        PointsObject.__init__(self, self.gen(size * 10 * size), self.pos, self.angle)
 
-        angle = random.random() * math.pi * 2
-        self.speed = [0.5 * math.sin(angle)*2/size, 0.5 * math.cos(angle)*2/size]
+
+        self.speed = [0.5 * math.cos(self.angle)*2/size, 0.5 * math.sin(self.angle)*2/size]
         self.ang_speed = random.random() * 0.015
 
         self.size = size
@@ -97,19 +104,14 @@ class Asteroid(PointsObject, CyclePos):
 
         self.game = game
         self.wave = wave
+        print(self.angle)
 
     def update(self):
-        if self.health <= 0:
-            self.wave.tab.remove(self)
-            self.game.score += self.size * 500
 
-            if self.size > 1:
-                for i in range(self.size):
-                    self.wave.tab.append(Asteroid(self.game, self.wave, self.size - 1, [self.pos[0], self.pos[1]]))
-        else:
-            super().update()
-            self.collision_laser()
-            self.cycle()
+
+        super().update()
+        self.collision_laser()
+        self.cycle()
 
     @staticmethod
     def gen(size):
@@ -126,14 +128,23 @@ class Asteroid(PointsObject, CyclePos):
 
             if tmp_result[0]:
                 laser.dead = True
-                self.hit(tmp_result[1], tmp_result[2])
+                self.hit(tmp_result[1], tmp_result[2], laser)
 
-    def hit(self, point1, point2):
+    def hit(self, point1, point2, laser):
         self.points[point1] = [self.points[point1][0] * 0.9, self.points[point1][1] * 0.9]
         self.points[point2] = [self.points[point2][0] * 0.9, self.points[point2][1] * 0.9]
         self.health = self.health - 1
         if self.health > 0:
             self.game.score += 100
+
+        if self.health <= 0:
+            self.wave.tab.remove(self)
+            self.game.score += self.size * 500
+
+            if self.size > 1:
+                for i in range(self.size):
+                    angle = laser.angle + numpy.random.normal(0,1,size=None)/4
+                    self.wave.tab.append(Asteroid(self.game, self.wave, self.size - 1, [self.pos[0], self.pos[1]], angle))
 
 
 class Laser(PointsObject):
