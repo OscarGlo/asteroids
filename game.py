@@ -61,26 +61,30 @@ class Game:
 
         self.stars = Stars(self, [0, 0])
 
+        self.explode = ParticleGen(self.ship.pos, 0, 2 * math.pi, 0, 2, 10)
+
         self.last_text = [[None, None], [None, None]]
 
         self.score = 0
         self.wave_timer = 0
+        self.end_time = -1
 
     def update(self):
         Events.update()
-        if Events.up:
-            self.ship.for_speed = 2.5
 
-        if Events.left:
-            self.ship.ang_speed = -0.025
-        elif Events.right:
-            self.ship.ang_speed = 0.025
+        if not self.ship.dead:
+            if Events.up:
+                self.ship.for_speed = 2.5
 
-        if Events.action:
-            self.ship.shoot()
+            if Events.left:
+                self.ship.ang_speed = -0.025
+            elif Events.right:
+                self.ship.ang_speed = 0.025
 
+            if Events.action:
+                self.ship.shoot()
 
-        self.ship.update()
+            self.ship.update()
 
         self.stars.update()
 
@@ -88,7 +92,20 @@ class Game:
 
         self.wave.update()
 
-        if len(self.wave.tab) == 0:
+        self.explode.pos = self.ship.pos
+        self.explode.update()
+
+        if self.end_time > 0:
+            if self.end_time > 160:
+                for i in range(20):
+                    self.explode.generate()
+
+            self.end_time -= 1
+
+        elif self.end_time == 0:
+            self.__init__()
+
+        if len(self.wave.tab) == 0 and self.nb_wave < len(self.waves) - 1:
             self.wave = self.waves[self.nb_wave]
             self.nb_wave += 1
             self.wave_timer = 0
@@ -110,8 +127,11 @@ class Game:
     def draw(self):
         self.surf.fill(Game.background)
         self.stars.draw(self.surf)
-        
-        self.ship.draw(self.surf)
+
+        self.explode.draw(self.surf)
+
+        if not self.ship.dead:
+            self.ship.draw(self.surf)
 
         self.wave.draw(self.surf)
 

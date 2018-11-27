@@ -95,7 +95,6 @@ class Asteroid(PointsObject, CyclePos):
 
         PointsObject.__init__(self, self.gen(size), self.pos, self.angle)
 
-
         self.speed = [0.5 * math.cos(self.angle)*2/size, 0.5 * math.sin(self.angle)*2/size]
         self.ang_speed = random.random() * 0.015
 
@@ -107,13 +106,13 @@ class Asteroid(PointsObject, CyclePos):
         self.wave = wave
 
     def update(self):
-
         super().update()
         self.collision_laser()
         self.cycle()
 
         if self.is_in(self.game.ship)[0] or self.game.ship.is_in(self)[0]:
-            self.game.__init__()
+            self.game.end_time = 180
+            self.game.ship.dead = True
 
     @staticmethod
     def gen(size):
