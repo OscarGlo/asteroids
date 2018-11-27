@@ -55,6 +55,7 @@ class ParticleGen(CyclePos):
             speed = self.speed + (self.speed * random.random() - self.speed / 2) * speed_var
             time = self.time + (self.time * random.random() - self.time / 2) * time_var
             self.particles.append(Particle(self.pos, angle, speed, time, fade, size))
+            print(angle, speed, time)
 
         self.cycle()
 
@@ -146,7 +147,8 @@ class Asteroid(PointsObject, CyclePos):
             if self.size > 1:
                 for i in range(self.size):
                     angle = laser.angle + (random.random()-0.5)*2
-                    self.wave.tab.append(Asteroid(self.game, self.wave, self.size - 1, [self.pos[0], self.pos[1]], angle))
+                    self.wave.tab.append(Asteroid(self.game, self.wave, self.size - 1, [self.pos[0], self.pos[1]],
+                                                  angle))
 
 
 class Laser(PointsObject):

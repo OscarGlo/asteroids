@@ -1,7 +1,6 @@
 import pygame
 from objects import *
-
-
+ 
 class Events:
     up = left = right = action = False
 
@@ -61,7 +60,7 @@ class Game:
 
         self.stars = Stars(self, [0, 0])
 
-        self.explode = ParticleGen(self.ship.pos, 0, 2 * math.pi, 0, 2, 10)
+        self.explode = ParticleGen(self.ship.pos, 0, 2 * math.pi, 0, 2, 1000)
 
         self.last_text = [[None, None], [None, None]]
 
@@ -129,6 +128,7 @@ class Game:
         self.stars.draw(self.surf)
 
         self.explode.draw(self.surf)
+
 
         if not self.ship.dead:
             self.ship.draw(self.surf)
