@@ -39,6 +39,7 @@ class Particle(CyclePos):
 class ParticleGen(CyclePos):
     def __init__(self, pos, direction, angle, delay, speed, time):
         super().__init__(pos)
+
         self.direction = direction
         self.angle = angle
         self.delay = delay
@@ -54,10 +55,7 @@ class ParticleGen(CyclePos):
             angle = self.direction + (random.random() * self.angle - self.angle / 2)
             speed = self.speed + (self.speed * random.random() - self.speed / 2) * speed_var
             time = self.time + (self.time * random.random() - self.time / 2) * time_var
-            self.particles.append(Particle(self.pos, angle, speed, time, fade, size))
-            print(angle, speed, time)
-
-        self.cycle()
+            self.particles.append(Particle([self.pos[0], self.pos[1]], angle, speed, time, fade, size))
 
     def update(self):
         if self.counter < self.delay:
@@ -67,6 +65,8 @@ class ParticleGen(CyclePos):
             p.update()
             if p.dead:
                 self.particles.remove(p)
+
+        self.cycle()
 
     def draw(self, surf):
         for particle in self.particles:
@@ -111,7 +111,7 @@ class Asteroid(PointsObject, CyclePos):
         self.collision_laser()
         self.cycle()
 
-        if self.is_in(self.game.ship)[0] or self.game.ship.is_in(self)[0]:
+        if (self.is_in(self.game.ship)[0] or self.game.ship.is_in(self)[0]) and not self.game.ship.dead:
             self.game.end_time = 180
             self.game.ship.dead = True
 

@@ -60,7 +60,7 @@ class Game:
 
         self.stars = Stars(self, [0, 0])
 
-        self.explode = ParticleGen(self.ship.pos, 0, 2 * math.pi, 0, 2, 1000)
+        self.explode = ParticleGen([self.ship.pos[0], self.ship.pos[1]], 0, 2 * math.pi, 0, 2, 200)
 
         self.last_text = [[None, None], [None, None]]
 
@@ -91,16 +91,16 @@ class Game:
 
         self.wave.update()
 
-        self.explode.pos = self.ship.pos
+        self.explode.pos = [self.ship.pos[0], self.ship.pos[1]]
         self.explode.update()
 
+        print(self.end_time)
         if self.end_time > 0:
-            if self.end_time > 160:
+            if self.end_time > 175:
                 for i in range(20):
                     self.explode.generate()
 
             self.end_time -= 1
-
         elif self.end_time == 0:
             self.__init__()
 
@@ -128,7 +128,6 @@ class Game:
         self.stars.draw(self.surf)
 
         self.explode.draw(self.surf)
-
 
         if not self.ship.dead:
             self.ship.draw(self.surf)
