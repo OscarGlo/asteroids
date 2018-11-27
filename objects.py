@@ -89,9 +89,11 @@ class Asteroid(PointsObject, CyclePos):
         else:
             self.angle = angle
 
-        CyclePos.__init__(self, self.pos, (100, 100))
+        size_sq = size * size * 10
+        offset = 2 * (0.2 * (size_sq + 5) + size_sq)
+        CyclePos.__init__(self, self.pos, (offset, offset))
 
-        PointsObject.__init__(self, self.gen(size * 10 * size), self.pos, self.angle)
+        PointsObject.__init__(self, self.gen(size), self.pos, self.angle)
 
 
         self.speed = [0.5 * math.cos(self.angle)*2/size, 0.5 * math.sin(self.angle)*2/size]
@@ -103,17 +105,19 @@ class Asteroid(PointsObject, CyclePos):
 
         self.game = game
         self.wave = wave
-        print(self.angle)
 
     def update(self):
-
 
         super().update()
         self.collision_laser()
         self.cycle()
 
+        if self.is_in(self.game.ship)[0] or self.game.ship.is_in(self)[0]:
+            self.game.__init__()
+
     @staticmethod
     def gen(size):
+        size = size * 10 * size
         tmp = []
         nb_points = math.floor(size / 5) + 5
         for i in range(0, nb_points):
@@ -246,7 +250,7 @@ class Ship(PointsObject, CyclePos):
 
 class Stars:
     def __init__(self, game, pos):
-        self.pos = pos
+        self.pos = pos 
         self.stars = []
         off = 50
         rand = 40

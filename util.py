@@ -57,15 +57,14 @@ class CyclePos:
 
     def cycle(self):
         if self.pos[0] >= width + self.off[0]:
-            self.pos[0] -= width + self.off[0] * 2
+            self.pos[0] = -self.off[0]
         elif self.pos[0] <= -self.off[0]:
-            self.pos[0] += width + self.off[0] * 2
+            self.pos[0] = width + self.off[0]
 
         if self.pos[1] >= height + self.off[1]:
-            self.pos[1] -= height + self.off[1] * 2
+            self.pos[1] = -self.off[1]
         elif self.pos[1] <= -self.off[1]:
-            self.pos[1] += height + self.off[1] * 2
-
+            self.pos[1] = height + self.off[1]
 
 class PointsObject:
     def __init__(self, points, pos, angle):

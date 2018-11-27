@@ -49,7 +49,7 @@ class Game:
         self.ship = Ship([400, 300])
 
         self.waves = [
-            Wave(self, [[1, 2]], "Wave 0"),
+            Wave(self, [[3, 1]], "Wave 0"),
             Wave(self, [[3, 1], [1, 2]], "Wave 1"),
             Wave(self, [[3, 2]], "Wave 2"),
             Wave(self, [[2, 1], [1, 3]], "Wave 3"),
@@ -68,7 +68,6 @@ class Game:
 
     def update(self):
         Events.update()
-
         if Events.up:
             self.ship.for_speed = 2.5
 
@@ -80,6 +79,7 @@ class Game:
         if Events.action:
             self.ship.shoot()
 
+
         self.ship.update()
 
         self.stars.update()
@@ -87,6 +87,7 @@ class Game:
         self.wave_timer += 1
 
         self.wave.update()
+
         if len(self.wave.tab) == 0:
             self.wave = self.waves[self.nb_wave]
             self.nb_wave += 1
