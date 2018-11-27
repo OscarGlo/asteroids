@@ -231,7 +231,7 @@ class Ship(PointsObject, CyclePos):
     def shoot(self):
         if self.laser_timer == 0:
             self.lasers.append(Laser(rotate_point(self.pos, [15, 0], self.angle), self.angle))
-            self.laser_timer = 50
+            self.laser_timer = 30
 
     def draw(self, surf, **kwargs):
         for i in (-1, 0, 1):

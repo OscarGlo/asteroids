@@ -47,7 +47,19 @@ class Game:
         pygame.display.set_icon(pygame.image.load('img/icon.png'))
 
         self.ship = Ship([400, 300])
-        self.wave = Wave(self, [[3, 2], [1, 2]])
+
+
+        self.waves = [
+            Wave(self, [[1, 2]]),
+            Wave(self, [[3, 1], [1, 2]]),
+            Wave(self, [[3, 2]]),
+            Wave(self, [[2, 1], [1, 3]]),
+            Wave(self, [[12, 1]]),
+        ]
+
+
+        self.wave = self.waves[0]
+        self.nb_wave = 0
 
         self.stars = Stars(self, [0, 0])
 
@@ -75,6 +87,9 @@ class Game:
         self.stars.update()
 
         self.wave.update()
+        if(len(self.wave.tab) == 0):
+            self.wave = self.waves[self.nb_wave]
+            self.nb_wave += 1
 
         self.timer += 1
 
