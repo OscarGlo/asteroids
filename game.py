@@ -48,25 +48,23 @@ class Game:
 
         self.ship = Ship([400, 300])
 
-
         self.waves = [
-            Wave(self, [[1, 2]]),
-            Wave(self, [[3, 1], [1, 2]]),
-            Wave(self, [[3, 2]]),
-            Wave(self, [[2, 1], [1, 3]]),
-            Wave(self, [[12, 1]]),
+            Wave(self, [[1, 2]], "Wave 0"),
+            Wave(self, [[3, 1], [1, 2]], "Wave 1"),
+            Wave(self, [[3, 2]], "Wave 2"),
+            Wave(self, [[2, 1], [1, 3]], "Wave 3"),
+            Wave(self, [[12, 1]], "Wave 4"),
         ]
-
 
         self.wave = self.waves[0]
         self.nb_wave = 0
 
         self.stars = Stars(self, [0, 0])
 
-        self.last_text = [None, None]
+        self.last_text = [[None, None], [None, None]]
 
         self.score = 0
-        self.timer = 0
+        self.wave_timer = 0
 
     def update(self):
         Events.update()
@@ -86,22 +84,27 @@ class Game:
 
         self.stars.update()
 
+        self.wave_timer += 1
+
         self.wave.update()
-        if(len(self.wave.tab) == 0):
+        if len(self.wave.tab) == 0:
             self.wave = self.waves[self.nb_wave]
             self.nb_wave += 1
+            self.wave_timer = 0
 
-        self.timer += 1
-
-    def text(self, text, size, pos):
-        if text != self.last_text[0]:
+    def text(self, text, slot, size, pos, center=False):
+        if text != self.last_text[slot][0]:
             font = pygame.font.Font("font/kongtext.ttf", size)
-            self.last_text[0] = text
-            self.last_text[1] = font.render(text, False, (255, 255, 255))
-        rect = self.last_text[1].get_rect()
-        rect.left = pos[0]
-        rect.top = pos[1]
-        self.surf.blit(self.last_text[1], rect)
+            self.last_text[slot][0] = text
+            self.last_text[slot][1] = font.render(text, False, (255, 255, 255))
+        rect = self.last_text[slot][1].get_rect()
+        if center:
+            rect.centerx = pos[0]
+            rect.centery = pos[1]
+        else:
+            rect.left = pos[0]
+            rect.top = pos[1]
+        self.surf.blit(self.last_text[slot][1], rect)
 
     def draw(self):
         self.surf.fill(Game.background)
@@ -118,7 +121,10 @@ class Game:
         str_score = str(self.score)
         for i in range(str_score.__len__(), 10):
             str_score = "0" + str_score
-        self.text(str_score, 15, (10, 10))
+        self.text(str_score, 0, 15, (10, 10))
+
+        if self.wave_timer < 180:
+            self.text(self.wave.text, 1, 25, (width/2, height/2), True)
 
 
 game = Game()
