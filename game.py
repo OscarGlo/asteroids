@@ -60,7 +60,7 @@ class Game:
 
         self.stars = Stars(self, [0, 0])
 
-        self.explode = ParticleGen([self.ship.pos[0], self.ship.pos[1]], 0, 2 * math.pi, 0, 2, 200)
+        self.explode = ParticleGen([self.ship.pos[0], self.ship.pos[1]], 0, 2 * math.pi, 0, 3, 150)
 
         self.last_text = [[None, None], [None, None]]
 
@@ -94,11 +94,10 @@ class Game:
         self.explode.pos = [self.ship.pos[0], self.ship.pos[1]]
         self.explode.update()
 
-        print(self.end_time)
         if self.end_time > 0:
-            if self.end_time > 175:
-                for i in range(20):
-                    self.explode.generate()
+            if self.end_time > 165:
+                for i in range(5):
+                    self.explode.generate(speed_var=1)
 
             self.end_time -= 1
         elif self.end_time == 0:
