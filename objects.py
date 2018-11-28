@@ -70,7 +70,7 @@ class ParticleGen(CyclePos):
 
     def draw(self, surf):
         for particle in self.particles:
-            particle.draw(surf)
+            particle.draw(surf, )
 
 
 class Asteroid(PointsObject, CyclePos):
@@ -118,8 +118,10 @@ class Asteroid(PointsObject, CyclePos):
             self.game.end_time = 180
             self.game.ship.dead = True
 
-    def draw(self, surf):
-        super().draw(surf)
+            pygame.mixer.Sound("sfx/ship_death.wav").play()
+
+    def draw(self, surf, **kwargs):
+        super().draw(surf, **kwargs)
         self.particles.draw(surf)
 
     @staticmethod
@@ -144,9 +146,13 @@ class Asteroid(PointsObject, CyclePos):
         self.points[point1] = [self.points[point1][0] * 0.9, self.points[point1][1] * 0.9]
         self.points[point2] = [self.points[point2][0] * 0.9, self.points[point2][1] * 0.9]
         self.health = self.health - 1
-        self.particles.pos = [laser.pos[0],laser.pos[1]]
+        self.particles.pos = [laser.pos[0], laser.pos[1]]
+
+        pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
+        
         for i in range(10):
             self.particles.generate(time_var=0.5, speed_var=0.5)
+
         if self.health > 0:
             self.game.score += 100
 
@@ -195,7 +201,7 @@ class Wave:
 
     def draw(self, surf):
         for asteroid in self.tab:
-            asteroid.draw(surf)
+            asteroid.draw(surf, )
 
 
 class Ship(PointsObject, CyclePos):
@@ -248,6 +254,8 @@ class Ship(PointsObject, CyclePos):
             self.lasers.append(Laser(rotate_point(self.pos, [15, 0], self.angle), self.angle))
             self.laser_timer = 30
 
+            pygame.mixer.Sound("sfx/ship_laser.wav").play()
+
     def draw(self, surf, **kwargs):
         for i in (-1, 0, 1):
             for j in (-1, 0, 1):
@@ -256,7 +264,7 @@ class Ship(PointsObject, CyclePos):
         self.particles.draw(surf)
 
         for l in self.lasers:
-            l.draw(surf)
+            l.draw(surf, )
 
 
 class Stars:

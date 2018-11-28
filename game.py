@@ -36,6 +36,7 @@ class Game:
 
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
         
         self.run = True
         self.clock = pygame.time.Clock()
@@ -48,7 +49,7 @@ class Game:
         self.ship = Ship([400, 300])
 
         self.waves = [
-            Wave(self, [[3, 2]], "Wave 0"),
+            Wave(self, [[3, 1]], "Wave 0"),
             Wave(self, [[3, 1], [1, 2]], "Wave 1"),
             Wave(self, [[3, 2]], "Wave 2"),
             Wave(self, [[2, 1], [1, 3]], "Wave 3"),
