@@ -96,6 +96,8 @@ class Asteroid(PointsObject, CyclePos):
 
         PointsObject.__init__(self, self.gen(size), self.pos, self.angle)
 
+        self.particles = ParticleGen([self.pos[0],self.pos[1]], self.angle + math.pi, math.pi * 2, 0, 2,40)
+
         self.speed = [0.5 * math.cos(self.angle)*2/size, 0.5 * math.sin(self.angle)*2/size]
         self.ang_speed = random.random() * 0.015
 
@@ -110,10 +112,15 @@ class Asteroid(PointsObject, CyclePos):
         super().update()
         self.collision_laser()
         self.cycle()
+        self.particles.update()
 
         if (self.is_in(self.game.ship)[0] or self.game.ship.is_in(self)[0]) and not self.game.ship.dead:
             self.game.end_time = 180
             self.game.ship.dead = True
+
+    def draw(self, surf):
+        super().draw(surf)
+        self.particles.draw(surf)
 
     @staticmethod
     def gen(size):
@@ -137,6 +144,9 @@ class Asteroid(PointsObject, CyclePos):
         self.points[point1] = [self.points[point1][0] * 0.9, self.points[point1][1] * 0.9]
         self.points[point2] = [self.points[point2][0] * 0.9, self.points[point2][1] * 0.9]
         self.health = self.health - 1
+        self.particles.pos = [laser.pos[0],laser.pos[1]]
+        for i in range(10):
+            self.particles.generate(time_var=0.5, speed_var=0.5)
         if self.health > 0:
             self.game.score += 100
 
