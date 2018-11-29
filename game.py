@@ -1,6 +1,7 @@
 import pygame
 from objects import *
- 
+
+
 class Events:
     up = left = right = action = False
 
@@ -37,7 +38,7 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
-        
+
         self.run = True
         self.clock = pygame.time.Clock()
 
@@ -59,9 +60,12 @@ class Game:
         self.wave = self.waves[0]
         self.nb_wave = 0
 
-        self.stars = Stars(self, [0, 0])
+        self.stars = [Stars(self, [0, 0], 0.2), Stars(self, [0, 0], 0.15), Stars(self, [0, 0], 0.1)]
 
         self.explode = ParticleGen([self.ship.pos[0], self.ship.pos[1]], 0, 2 * math.pi, 0, 3, 150)
+        self.asteroid_explode = ParticleGen([0, 0], 0, 2 * math.pi, 0, 2, 70)
+        self.asteroid_explode_timer = 0
+        self.asteroid_explode_size = 0
 
         self.last_text = [[None, None], [None, None]]
 
@@ -86,11 +90,17 @@ class Game:
 
             self.ship.update()
 
-        self.stars.update()
+        for stars in self.stars:
+            stars.update()
 
         self.wave_timer += 1
 
         self.wave.update()
+
+        self.asteroid_explode.update()
+        if self.asteroid_explode_timer > 0:
+            self.asteroid_explode.generate(speed_var=0.8)
+            self.asteroid_explode_timer -= 1
 
         self.explode.pos = [self.ship.pos[0], self.ship.pos[1]]
         self.explode.update()
@@ -104,7 +114,7 @@ class Game:
         elif self.end_time == 0:
             self.__init__()
 
-        if len(self.wave.tab) == 0 and self.nb_wave < len(self.waves) - 1:
+        if len(self.wave.tab) == 0 and self.nb_wave < len(self.waves):
             self.wave = self.waves[self.nb_wave]
             self.nb_wave += 1
             self.wave_timer = 0
@@ -125,9 +135,11 @@ class Game:
 
     def draw(self):
         self.surf.fill(Game.background)
-        self.stars.draw(self.surf)
+        for stars in self.stars:
+            stars.draw(self.surf)
 
         self.explode.draw(self.surf)
+        self.asteroid_explode.draw(self.surf, size=self.asteroid_explode_size, circle=True)
 
         if not self.ship.dead:
             self.ship.draw(self.surf)
@@ -143,8 +155,10 @@ class Game:
             str_score = "0" + str_score
         self.text(str_score, 0, 15, (10, 10))
 
-        if self.wave_timer < 180:
-            self.text(self.wave.text, 1, 25, (width/2, height/2), True)
+        if self.nb_wave == len(self.waves) and len(self.wave.tab) == 0:
+            self.text("You win !", 1, 25, (width / 2, height / 2), True)
+        elif self.wave_timer < 180:
+            self.text(self.wave.text, 1, 25, (width / 2, height / 2), True)
 
 
 game = Game()

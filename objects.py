@@ -4,13 +4,12 @@ from util import *
 
 
 class Particle(CyclePos):
-    def __init__(self, pos, angle, speed, time, fade=True, size=2):
+    def __init__(self, pos, angle, speed, time, fade=True):
         super().__init__(pos)
         self.angle = angle
         self.speed = speed
         self.time = self.startTime = time
         self.fade = fade
-        self.size = size
 
         self.dead = False
 
@@ -26,14 +25,18 @@ class Particle(CyclePos):
 
         self.cycle()
 
-    def draw(self, surf):
+    def draw(self, surf, size=2, circle=False):
         if self.fade:
             c = math.floor(255 * (self.time / self.startTime))
         else:
             c = 255
         if c < 0:
             c = 0
-        pygame.draw.rect(surf, (c, c, c), pygame.rect.Rect(self.pos, (self.size, self.size)))
+        rect = pygame.rect.Rect([self.pos[0] - size/2, self.pos[1] - size/2], (size, size))
+        if circle:
+            pygame.draw.ellipse(surf, (c, c, c), rect, 2)
+        else:
+            pygame.draw.rect(surf, (c, c, c), rect)
 
 
 class ParticleGen(CyclePos):
@@ -49,13 +52,13 @@ class ParticleGen(CyclePos):
 
         self.particles = []
 
-    def generate(self, speed_var=0.2, time_var=0.1, fade=True, size=2):
+    def generate(self, speed_var=0.2, time_var=0.1, fade=True):
         if self.counter == self.delay:
             self.counter = 0
             angle = self.direction + (random.random() * self.angle - self.angle / 2)
             speed = self.speed + (self.speed * random.random() - self.speed / 2) * speed_var
             time = self.time + (self.time * random.random() - self.time / 2) * time_var
-            self.particles.append(Particle([self.pos[0], self.pos[1]], angle, speed, time, fade, size))
+            self.particles.append(Particle([self.pos[0], self.pos[1]], angle, speed, time, fade))
 
     def update(self):
         if self.counter < self.delay:
@@ -68,9 +71,9 @@ class ParticleGen(CyclePos):
 
         self.cycle()
 
-    def draw(self, surf):
+    def draw(self, surf, size=2, circle=False):
         for particle in self.particles:
-            particle.draw(surf, )
+            particle.draw(surf, size, circle)
 
 
 class Asteroid(PointsObject, CyclePos):
@@ -86,7 +89,7 @@ class Asteroid(PointsObject, CyclePos):
             self.pos = pos
 
         if angle is None:
-            self.angle = random.random() * math.pi * 2
+            self.angle = random.randint(0, 3) * math.pi/2 + (1 + random.random() * 3) * math.pi/10
         else:
             self.angle = angle
 
@@ -96,9 +99,9 @@ class Asteroid(PointsObject, CyclePos):
 
         PointsObject.__init__(self, self.gen(size), self.pos, self.angle)
 
-        self.particles = ParticleGen([self.pos[0],self.pos[1]], self.angle + math.pi, math.pi * 2, 0, 2,40)
+        self.particles = ParticleGen([self.pos[0], self.pos[1]], self.angle + math.pi, math.pi * 2, 0, 2, 40)
 
-        self.speed = [0.5 * math.cos(self.angle)*2/size, 0.5 * math.sin(self.angle)*2/size]
+        self.speed = [0.5 * math.cos(self.angle) * 2 / size, 0.5 * math.sin(self.angle) * 2 / size]
         self.ang_speed = random.random() * 0.015
 
         self.size = size
@@ -118,7 +121,7 @@ class Asteroid(PointsObject, CyclePos):
             self.game.end_time = 180
             self.game.ship.dead = True
 
-            pygame.mixer.Sound("sfx/ship_death.wav").play()
+            # pygame.mixer.Sound("sfx/ship_death.wav").play()
 
     def draw(self, surf, **kwargs):
         super().draw(surf, **kwargs)
@@ -148,8 +151,8 @@ class Asteroid(PointsObject, CyclePos):
         self.health = self.health - 1
         self.particles.pos = [laser.pos[0], laser.pos[1]]
 
-        pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
-        
+        # pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
+
         for i in range(10):
             self.particles.generate(time_var=0.5, speed_var=0.5)
 
@@ -162,9 +165,13 @@ class Asteroid(PointsObject, CyclePos):
 
             if self.size > 1:
                 for i in range(self.size):
-                    angle = laser.angle + (random.random()-0.5)*2
+                    angle = laser.angle + (random.random() - 0.5) * 2
                     self.wave.tab.append(Asteroid(self.game, self.wave, self.size - 1, [self.pos[0], self.pos[1]],
                                                   angle))
+
+            self.game.asteroid_explode.pos = [self.pos[0], self.pos[1]]
+            self.game.asteroid_explode_timer = self.size * self.size + 2
+            self.game.asteroid_explode_size = self.size * 2 + 4
 
 
 class Laser(PointsObject):
@@ -201,7 +208,7 @@ class Wave:
 
     def draw(self, surf):
         for asteroid in self.tab:
-            asteroid.draw(surf, )
+            asteroid.draw(surf)
 
 
 class Ship(PointsObject, CyclePos):
@@ -254,7 +261,7 @@ class Ship(PointsObject, CyclePos):
             self.lasers.append(Laser(rotate_point(self.pos, [15, 0], self.angle), self.angle))
             self.laser_timer = 30
 
-            pygame.mixer.Sound("sfx/ship_laser.wav").play()
+            # pygame.mixer.Sound("sfx/ship_laser.wav").play()
 
     def draw(self, surf, **kwargs):
         for i in (-1, 0, 1):
@@ -264,31 +271,32 @@ class Ship(PointsObject, CyclePos):
         self.particles.draw(surf)
 
         for l in self.lasers:
-            l.draw(surf, )
+            l.draw(surf)
 
 
 class Stars:
-    def __init__(self, game, pos):
-        self.pos = pos 
+    def __init__(self, game, pos, speed):
+        self.pos = pos
+        self.speed = speed
+
         self.stars = []
-        off = 50
-        rand = 40
-        for i in range(math.floor(width/off)):
-            for j in range(math.floor(height/off)):
+        off = self.speed * 800
+        rand = self.speed * 600
+        for i in range(math.floor(width / off)):
+            for j in range(math.floor(height / off)):
                 self.stars.append([i * off + math.floor(random.random() * rand),
-                                   j * off + math.floor(random.random() * rand),
-                                   ])
+                                   j * off + math.floor(random.random() * rand)])
 
         self.game = game
 
     def draw(self, surf):
         for star in self.stars:
-            c = 50+75*random.random()
+            c = (500 + 750 * random.random()) * self.speed
             pygame.draw.rect(surf, (c, c, c),
                              pygame.rect.Rect(
                                  ((self.pos[0] + star[0]) % width, (self.pos[1] + star[1]) % height), (2, 2))
                              )
 
     def update(self):
-        self.pos[0] += self.game.ship.speed[0] / 5
-        self.pos[1] += self.game.ship.speed[1] / 5
+        self.pos[0] -= self.game.ship.speed[0] * self.speed
+        self.pos[1] -= self.game.ship.speed[1] * self.speed
