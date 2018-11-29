@@ -36,10 +36,13 @@ class Game:
     background = (0, 0, 1)
 
     def __init__(self):
+
+        pygame.mixer.pre_init(44100, -16, 1, 1024)
+        pygame.mixer.init()
         pygame.init()
         pygame.display.init()
-        pygame.mixer.init(frequency=22050, size=-16, channels=8, buffer=4096)
 
+        pygame.mixer.Sound("sfx/ether.wav").play(loops=2)
         self.run = True
         self.clock = pygame.time.Clock()
 
@@ -56,11 +59,12 @@ class Game:
         self.asteroid_explode = ParticleGen([0, 0], 0, 2 * math.pi, 0, 2, 70)
 
         self.waves = [
-            [["Boss", [15, 1]], "Wave 0"],
+            [[[3, 1]], "Wave 0"],
             [[[3, 1], [1, 2]], "Wave 1"],
             [[[3, 2]], "Wave 2"],
             [[[4, 1], [1, 3]], "Wave 3"],
             [[[12, 1]], "Wave 4"],
+            [["Boss"], "Wave 4"],
         ]
 
         self.last_text = [[None, None], [None, None]]

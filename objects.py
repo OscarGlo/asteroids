@@ -120,8 +120,7 @@ class Asteroid(PointsObject, CyclePos):
         if (self.is_in(self.game.ship)[0] or self.game.ship.is_in(self)[0]) and not self.game.ship.dead:
             self.game.end_time = 180
             self.game.ship.dead = True
-
-        #pygame.mixer.Sound("sfx/ship_death.wav").play()
+            pygame.mixer.Sound("sfx/ship_death.wav").play()
 
     def draw(self, surf, **kwargs):
         super().draw(surf, **kwargs)
@@ -151,7 +150,7 @@ class Asteroid(PointsObject, CyclePos):
         self.health = self.health - 1
         self.particles.pos = [laser.pos[0], laser.pos[1]]
 
-        #pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
+        pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
 
         for i in range(10):
             self.particles.generate(time_var=0.5, speed_var=0.5)
@@ -265,7 +264,7 @@ class Ship(PointsObject, CyclePos):
             self.lasers.append(Laser(rotate_point(self.pos, [15, 0], self.angle), self.angle))
             self.laser_timer = 30
 
-            #pygame.mixer.Sound("sfx/ship_laser.wav").play()
+            pygame.mixer.Sound("sfx/ship_laser.wav").play()
 
     def draw(self, surf, **kwargs):
         for i in (-1, 0, 1):
@@ -317,7 +316,7 @@ class Boss(Ship):
 
         PointsObject.draw(self, surf, color=self.color)
 
-        #self.particles.draw(surf)
+        self.particles.draw(surf)
 
         for l in self.lasers:
             l.draw(surf, color=[255,20,20])
