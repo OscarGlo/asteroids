@@ -59,7 +59,7 @@ class Game:
         self.asteroid_explode = ParticleGen([0, 0], 0, 2 * math.pi, 0, 2, 70)
 
         self.waves = [
-            [[[3, 1]], "Wave 0"],
+            [["Boss"], "Wave 0"],
             [[[3, 1], [1, 2]], "Wave 1"],
             [[[3, 2]], "Wave 2"],
             [[[4, 1], [1, 3]], "Wave 3"],
@@ -176,7 +176,8 @@ class Game:
         if not self.menu and not self.ship.dead:
             self.ship.draw(self.surf)
 
-        self.wave.draw(self.surf)
+        if not self.menu:
+            self.wave.draw(self.surf)
 
         self.draw_ui()
         pygame.display.update()

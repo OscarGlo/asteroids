@@ -292,12 +292,13 @@ class Boss(Ship):
             [-30, 0],
             [-45, 45]
         ], pos, math.pi / 2)
+        self.health = 20
 
     def update(self):
-
         self.shoot()
         self.for_speed = 1
-        if sign([self.pos[0], self.pos[1]], rotate_point([self.pos[0], self.pos[1]], [1, 0], self.angle), self.game.ship.pos) < 0:
+        if sign([self.pos[0], self.pos[1]], rotate_point([self.pos[0], self.pos[1]], [1, 0], self.angle),
+                self.game.ship.pos) < 0:
             self.ang_speed = -0.025
         else:
             self.ang_speed = 0.025
@@ -306,30 +307,50 @@ class Boss(Ship):
         if (self.game.ship.is_in(self)[0] or self.is_in(self.game.ship)[0]) and not self.game.ship.dead:
             self.game.end_time = 180
             self.game.ship.dead = True
+            pygame.mixer.Sound("sfx/ship_death.wav").play()
 
         for laser in self.lasers:
             if self.game.ship.is_in(laser)[0] and not self.game.ship.dead:
                 self.game.end_time = 180
                 self.game.ship.dead = True
+                pygame.mixer.Sound("sfx/ship_death.wav").play()
+
+        for laser in self.game.ship.lasers:
+            if self.is_in(laser)[0]:
+                self.health -= 1
+                self.game.score += 100
+                self.game.ship.lasers.remove(laser)
+            if self.health == 0:
+                self.game.score += 10000
+                self.game.wave.tab.remove(self)
+                break
 
     def draw(self, surf, **kwargs):
 
         PointsObject.draw(self, surf, color=self.color)
-
         self.particles.draw(surf)
 
+        self.show_health(surf, self.health, 20)
+
         for l in self.lasers:
-            l.draw(surf, color=[255,20,20])
+            l.draw(surf, color=[255, 20, 20])
 
     def shoot(self):
         if self.laser_timer == 0:
-            self.lasers.append(Laser(rotate_point(self.pos, [45, 0], self.angle), self.angle, points=[[0, 0], [10, 0], [20, 0], [30, 0]], speed=2))
+            self.lasers.append(Laser(rotate_point(self.pos, [45, 0], self.angle), self.angle,
+                                     points=[[0, 0], [10, 0], [20, 0], [30, 0]], speed=2))
             self.laser_timer = 150
+
+    def show_health(self, surf, health, max_health):
+        pygame.draw.rect(surf, [255, 20, 20], pygame.Rect(width*0.05, height*0.9, width*0.9, height*0.025))
+        pygame.draw.rect(surf, [20, 255, 20], pygame.Rect(width * 0.05, height * 0.9,
+                                                          width * 0.9*(health/max_health), height * 0.025))
+
+
 class Stars:
     def __init__(self, game, pos, speed):
         self.pos = pos
         self.speed = speed
-
         self.stars = []
         off = self.speed * 800
         rand = self.speed * 600
