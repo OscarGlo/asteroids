@@ -121,7 +121,7 @@ class Asteroid(PointsObject, CyclePos):
             self.game.end_time = 180
             self.game.ship.dead = True
 
-            # pygame.mixer.Sound("sfx/ship_death.wav").play()
+        #pygame.mixer.Sound("sfx/ship_death.wav").play()
 
     def draw(self, surf, **kwargs):
         super().draw(surf, **kwargs)
@@ -151,7 +151,7 @@ class Asteroid(PointsObject, CyclePos):
         self.health = self.health - 1
         self.particles.pos = [laser.pos[0], laser.pos[1]]
 
-        # pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
+        #pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
 
         for i in range(10):
             self.particles.generate(time_var=0.5, speed_var=0.5)
@@ -175,12 +175,13 @@ class Asteroid(PointsObject, CyclePos):
 
 
 class Laser(PointsObject):
-    def __init__(self, pos, angle):
-        super().__init__([
-            [0, 0],
-            [10, 0]
-        ], pos, angle)
-        self.speed = [5 * math.cos(self.angle), 5 * math.sin(self.angle)]
+    def __init__(self, pos, angle, points=None, speed=5):
+
+        if points is None:
+            points = [[0, 0], [10, 0]]
+
+        super().__init__(points, pos, angle)
+        self.speed = [speed * math.cos(self.angle), speed * math.sin(self.angle)]
 
     def update(self):
         if not self.dead:
@@ -190,7 +191,7 @@ class Laser(PointsObject):
                 self.dead = True
 
     def draw(self, surf, **kwargs):
-        super().draw(surf)
+        super().draw(surf, **kwargs)
 
 
 class Wave:
@@ -199,8 +200,11 @@ class Wave:
         self.tab = []
 
         for char in asteroids:
-            for i in range(char[0]):
-                self.tab.append(Asteroid(game, self, char[1]))
+            if char == "Boss":
+                self.tab.append(Boss(game, [width/2, -50]))
+            else:
+                for i in range(char[0]):
+                    self.tab.append(Asteroid(game, self, char[1]))
 
     def update(self):
         for asteroid in self.tab:
@@ -261,7 +265,7 @@ class Ship(PointsObject, CyclePos):
             self.lasers.append(Laser(rotate_point(self.pos, [15, 0], self.angle), self.angle))
             self.laser_timer = 30
 
-            # pygame.mixer.Sound("sfx/ship_laser.wav").play()
+            #pygame.mixer.Sound("sfx/ship_laser.wav").play()
 
     def draw(self, surf, **kwargs):
         for i in (-1, 0, 1):
@@ -274,6 +278,54 @@ class Ship(PointsObject, CyclePos):
             l.draw(surf)
 
 
+class Boss(Ship):
+    color = (255, 20, 20)
+
+    def __init__(self, game, pos):
+        super().__init__(pos)
+        self.game = game
+
+        CyclePos.__init__(self, pos, off=[50, 50])
+
+        PointsObject.__init__(self, [
+            [45, 0],
+            [-45, -45],
+            [-30, 0],
+            [-45, 45]
+        ], pos, math.pi / 2)
+
+    def update(self):
+
+        self.shoot()
+        self.for_speed = 1
+        if sign([self.pos[0], self.pos[1]], rotate_point([self.pos[0], self.pos[1]], [1, 0], self.angle), self.game.ship.pos) < 0:
+            self.ang_speed = -0.025
+        else:
+            self.ang_speed = 0.025
+        super().update()
+
+        if (self.game.ship.is_in(self)[0] or self.is_in(self.game.ship)[0]) and not self.game.ship.dead:
+            self.game.end_time = 180
+            self.game.ship.dead = True
+
+        for laser in self.lasers:
+            if self.game.ship.is_in(laser)[0] and not self.game.ship.dead:
+                self.game.end_time = 180
+                self.game.ship.dead = True
+
+    def draw(self, surf, **kwargs):
+
+        PointsObject.draw(self, surf, color=self.color)
+
+        #self.particles.draw(surf)
+
+        for l in self.lasers:
+            l.draw(surf, color=[255,20,20])
+
+    def shoot(self):
+        if self.laser_timer == 0:
+            self.lasers.append(Laser(rotate_point(self.pos, [45, 0], self.angle), self.angle, points=[[0, 0], [10, 0], [20, 0], [30, 0]], speed=2))
+            self.laser_timer = 150
 class Stars:
     def __init__(self, game, pos, speed):
         self.pos = pos
@@ -282,8 +334,8 @@ class Stars:
         self.stars = []
         off = self.speed * 800
         rand = self.speed * 600
-        for i in range(math.floor(width / off)):
-            for j in range(math.floor(height / off)):
+        for i in range(math.ceil(width / off)):
+            for j in range(math.ceil(height / off)):
                 self.stars.append([i * off + math.floor(random.random() * rand),
                                    j * off + math.floor(random.random() * rand)])
 
