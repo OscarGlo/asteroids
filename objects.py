@@ -94,7 +94,7 @@ class Asteroid(PointsObject, CyclePos):
             self.angle = angle
 
         size_sq = size * size * 10
-        offset = 2 * (0.2 * (size_sq + 5) + size_sq)
+        offset = 0.2 * (size_sq + 5) + size_sq
         CyclePos.__init__(self, self.pos, (offset, offset))
 
         PointsObject.__init__(self, self.gen(size), self.pos, self.angle)
@@ -150,13 +150,13 @@ class Asteroid(PointsObject, CyclePos):
         self.health = self.health - 1
         self.particles.pos = [laser.pos[0], laser.pos[1]]
 
-        pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
-
         for i in range(10):
             self.particles.generate(time_var=0.5, speed_var=0.5)
 
         if self.health > 0:
             self.game.score += 100
+
+            pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
 
         if self.health <= 0:
             self.wave.tab.remove(self)
@@ -171,6 +171,8 @@ class Asteroid(PointsObject, CyclePos):
             self.game.asteroid_explode.pos = [self.pos[0], self.pos[1]]
             self.game.asteroid_explode_timer = self.size * self.size + 2
             self.game.asteroid_explode_size = self.size * 2 + 4
+
+            pygame.mixer.Sound("sfx/asteroid_death.wav").play()
 
 
 class Laser(PointsObject):
@@ -235,17 +237,18 @@ class Ship(PointsObject, CyclePos):
         self.lasers = []
         self.laser_timer = 0
 
-    def update(self):
+    def update(self, gen_particles=True):
         self.speed[0] = self.speed[0] * (1 - Ship.rate) + self.for_speed * math.cos(self.angle) * Ship.rate
         self.speed[1] = self.speed[1] * (1 - Ship.rate) + self.for_speed * math.sin(self.angle) * Ship.rate
 
         super().update()
 
-        self.particles.pos = rotate_point(self.pos, [-10, 0], self.angle)
-        self.particles.direction = self.angle + math.pi
-        self.particles.update()
-        if self.for_speed != 0:
-            self.particles.generate(fade=True)
+        if gen_particles:
+            self.particles.pos = rotate_point(self.pos, [-10, 0], self.angle)
+            self.particles.direction = self.angle + math.pi
+            self.particles.update()
+            if self.for_speed != 0:
+                self.particles.generate(fade=True)
 
         self.for_speed = 0
         self.ang_speed = 0
@@ -302,7 +305,8 @@ class Boss(Ship):
             self.ang_speed = -0.025
         else:
             self.ang_speed = 0.025
-        super().update()
+
+        super().update(False)
 
         if (self.game.ship.is_in(self)[0] or self.is_in(self.game.ship)[0]) and not self.game.ship.dead:
             self.game.end_time = 180
@@ -342,9 +346,9 @@ class Boss(Ship):
             self.laser_timer = 150
 
     def show_health(self, surf, health, max_health):
-        pygame.draw.rect(surf, [255, 20, 20], pygame.Rect(width*0.05, height*0.9, width*0.9, height*0.025))
-        pygame.draw.rect(surf, [20, 255, 20], pygame.Rect(width * 0.05, height * 0.9,
+        pygame.draw.rect(surf, [200, 20, 20], pygame.Rect(width * 0.05, height * 0.9,
                                                           width * 0.9*(health/max_health), height * 0.025))
+        pygame.draw.rect(surf, [220, 220, 220], pygame.Rect(width*0.05, height*0.9, width*0.9, height*0.025), 2)
 
 
 class Stars:
