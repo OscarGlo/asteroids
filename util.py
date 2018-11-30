@@ -25,17 +25,18 @@ def rotate_points(origin, points, angle):
 def sign(point1, point2, point3):
     return (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
 
+def aire_triangle(point1, point2, point3):
+    return abs(sign(point1, point2, point3))
+
+def dist_points(point1, point2):
+    return math.sqrt(math.pow(point1[0]-point2[0], 2) + math.pow(point1[1]-point2[1], 2))
 
 def point_in_triangle(point, tri):
-    d1 = sign(point, tri[0], tri[1])
-    d2 = sign(point, tri[1], tri[2])
-    d3 = sign(point, tri[2], tri[0])
+    d1 = aire_triangle(point, tri[0], tri[1])
+    d2 = aire_triangle(point, tri[1], tri[2])
+    d3 = aire_triangle(point, tri[2], tri[0])
 
-    has_neg = (d1 < 0) or (d2 < 0) or (d3 < 0)
-    has_pos = (d1 > 0) or (d2 > 0) or (d3 > 0)
-
-    return not (has_neg and has_pos)
-
+    return not (d1+d2+d3 > aire_triangle(tri[0], tri[1], tri[2]))
 
 def point_in_polygon(point, center, polygon):
     i = 0

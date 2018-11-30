@@ -159,7 +159,10 @@ class Asteroid(PointsObject, CyclePos):
             pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
 
         if self.health <= 0:
-            self.wave.tab.remove(self)
+            try:
+                self.wave.tab.remove(self)
+            except ValueError:
+                pass
             self.game.score += self.size * 500
 
             if self.size > 1:
@@ -299,9 +302,10 @@ class Boss(Ship):
 
     def update(self):
         self.shoot()
-        self.for_speed = 1
+        self.for_speed =  20/(self.health+10)
+        ship = self.game.ship
         if sign([self.pos[0], self.pos[1]], rotate_point([self.pos[0], self.pos[1]], [1, 0], self.angle),
-                self.game.ship.pos) < 0:
+                [ship.pos[0] + ship.speed[0]*120*dist_points(self.pos, ship.pos)/300, ship.pos[1] + ship.speed[1]*120*dist_points(self.pos, ship.pos)/300]) < 0:
             self.ang_speed = -0.025
         else:
             self.ang_speed = 0.025

@@ -37,7 +37,7 @@ class Game:
 
     def __init__(self):
 
-        pygame.mixer.pre_init(44100, -16, 1, 1024)
+        pygame.mixer.pre_init(44100, -16, 20, 1024)
         pygame.mixer.init()
         pygame.init()
         pygame.display.init()
@@ -59,11 +59,15 @@ class Game:
         self.asteroid_explode = ParticleGen([0, 0], 0, 2 * math.pi, 0, 2, 70)
 
         self.waves = [
-            [[[3, 1]], "wave 0"],
-            [[[3, 1], [1, 2]], "wave 1"],
-            [[[3, 2]], "wave 2"],
-            [[[4, 1], [1, 3]], "wave 3"],
-            [[[12, 1]], "wave 4"],
+            [[[1, 1]], "wave 0"],
+            [[[3, 1]], "wave 1"],
+            [[[1, 2]], "wave 2"],
+            [[[3, 1], [1, 2]], "wave 3"],
+            [[[3, 2]], "wave 4"],
+            [[[1, 3]], "wave 5"],
+            [[[3, 1], [3, 2]], "wave 6"],
+            [[[2, 3]], "wave 7"],
+            [[[12, 1]], "wave 8"],
             [["Boss"], "boss wave"],
         ]
 
@@ -193,7 +197,7 @@ class Game:
             self.text(str_score, 0, 15, (10, 10))
 
             if self.nb_wave == len(self.waves) and len(self.wave.tab) == 0:
-                self.text("You win !", 1, 25, (width / 2, height / 2), True)
+                self.text("congratulations !", 1, 25, (width / 2, height / 2), True)
             elif self.wave_timer < 180:
                 self.text(self.wave.text, 1, 25, (width / 2, height / 2), True)
 
