@@ -59,6 +59,7 @@ class Game:
         self.asteroid_explode = ParticleGen([0, 0], 0, 2 * math.pi, 0, 2, 70)
 
         self.waves = [
+            #[["Boss"], "wave none"],
             [[[1, 1]], "wave 0"],
             [[[3, 1]], "wave 1"],
             [[[1, 2]], "wave 2"],

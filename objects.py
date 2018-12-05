@@ -82,9 +82,9 @@ class Asteroid(PointsObject, CyclePos):
     def __init__(self, game, wave, size, pos=None, angle=None):
         if pos is None:
             if random.random() > 0.5:
-                self.pos = [random.random() * width, -100]
+                self.pos = [random.random() * width, -size*size*10*1.2]
             else:
-                self.pos = [-100, random.random() * height]
+                self.pos = [-size*size*10*1.2, random.random() * height]
         else:
             self.pos = pos
 
@@ -120,7 +120,7 @@ class Asteroid(PointsObject, CyclePos):
         if (self.is_in(self.game.ship)[0] or self.game.ship.is_in(self)[0]) and not self.game.ship.dead:
             self.game.end_time = 180
             self.game.ship.dead = True
-            #pygame.mixer.Sound("sfx/ship_death.wav").play()
+            pygame.mixer.Sound("sfx/ship_death.wav").play()
 
     def draw(self, surf, **kwargs):
         super().draw(surf, **kwargs)
@@ -156,7 +156,7 @@ class Asteroid(PointsObject, CyclePos):
         if self.health > 0:
             self.game.score += 100
 
-            #pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
+            pygame.mixer.Sound("sfx/asteroid_hit.wav").play()
 
         if self.health <= 0:
             try:
@@ -175,7 +175,7 @@ class Asteroid(PointsObject, CyclePos):
             self.game.asteroid_explode_timer = self.size * self.size + 2
             self.game.asteroid_explode_size = self.size * 2 + 4
 
-            #pygame.mixer.Sound("sfx/asteroid_death.wav").play()
+            pygame.mixer.Sound("sfx/asteroid_death.wav").play()
 
 
 class Laser(PointsObject):
@@ -270,7 +270,7 @@ class Ship(PointsObject, CyclePos):
             self.lasers.append(Laser(rotate_point(self.pos, [15, 0], self.angle), self.angle))
             self.laser_timer = 30
 
-            #pygame.mixer.Sound("sfx/ship_laser.wav").play()
+            pygame.mixer.Sound("sfx/ship_laser.wav").play()
 
     def draw(self, surf, **kwargs):
         for i in (-1, 0, 1):
@@ -304,6 +304,7 @@ class Boss(Ship):
         self.shoot()
         self.for_speed =  20/(self.health+10)
         ship = self.game.ship
+
         if sign([self.pos[0], self.pos[1]], rotate_point([self.pos[0], self.pos[1]], [1, 0], self.angle),
                 [ship.pos[0] + ship.speed[0]*120*dist_points(self.pos, ship.pos)/300, ship.pos[1] + ship.speed[1]*120*dist_points(self.pos, ship.pos)/300]) < 0:
             self.ang_speed = -0.025
@@ -315,13 +316,13 @@ class Boss(Ship):
         if (self.game.ship.is_in(self)[0] or self.is_in(self.game.ship)[0]) and not self.game.ship.dead:
             self.game.end_time = 180
             self.game.ship.dead = True
-            #pygame.mixer.Sound("sfx/ship_death.wav").play()
+            pygame.mixer.Sound("sfx/ship_death.wav").play()
 
         for laser in self.lasers:
             if self.game.ship.is_in(laser)[0] and not self.game.ship.dead:
                 self.game.end_time = 180
                 self.game.ship.dead = True
-                #pygame.mixer.Sound("sfx/ship_death.wav").play()
+                pygame.mixer.Sound("sfx/ship_death.wav").play()
 
         for laser in self.game.ship.lasers:
             if self.is_in(laser)[0]:

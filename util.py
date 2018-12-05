@@ -23,7 +23,7 @@ def rotate_points(origin, points, angle):
 
 
 def sign(point1, point2, point3):
-    return (point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1])
+    return ((point1[0] - point3[0]) * (point2[1] - point3[1]) - (point2[0] - point3[0]) * (point1[1] - point3[1]))/2
 
 def aire_triangle(point1, point2, point3):
     return abs(sign(point1, point2, point3))
